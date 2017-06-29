@@ -1,19 +1,20 @@
 #include "Arduino.h"
 #include "YMZ294.h"
+#define fsc 2000000
 
 YMZ294::YMZ294(byte WS, byte CS, byte A0, byte IC, byte* D) {
-  pinMode(_WS, OUTPUT);
   _WS = WS;
-  pinMode(_CS, OUTPUT);
+  pinMode(_WS, OUTPUT);
   _CS = CS;
-  pinMode(_A0, OUTPUT);
+  pinMode(_CS, OUTPUT);
   _A0 = A0;
-  pinMode(_IC, OUTPUT);
+  pinMode(_A0, OUTPUT);
   _IC = IC;
+  pinMode(_IC, OUTPUT);
+  _D = D;
   for (int i = 0; i < 8; i++) {
     pinMode(_D[i], OUTPUT);
   }
-  _D = D;
 }
 YMZ294::YMZ294(byte WS, byte CS, byte A0, byte IC, byte* D, bool toggle) {
   _WS = WS;
@@ -30,14 +31,6 @@ YMZ294::YMZ294(byte WS, byte CS, byte A0, byte IC, byte* D, bool toggle) {
   }
   _toggle = toggle;
 }
-
-//void YMZ294::reset() {
-//  digitalWrite(_WS, HIGH);
-//  digitalWrite(_CS, HIGH);
-//  digitalWrite(_IC, LOW);
-//  delay(1);
-//  digitalWrite(_IC, HIGH);
-//}
 
 void YMZ294::reset() {
   if (_toggle == true) {
@@ -78,4 +71,34 @@ void YMZ294::setRegister(byte address, byte data) {
 }
 
 
+void YMZ294::setToneFrequency(byte ch, int freq) {
+  int TP = 0;
+  if (freq != 0) {
+    TP = fsc / (16 * freq);
+  }
+  TP &= 0b0000111111111111;
+  setRegister(0x00 + (ch * 2), TP & 0xff);
+  setRegister(0x01 + (ch * 2), (TP >> 8) & 0xff);
+}
+
+void YMZ294::setToneFrequency(byte ch, float freq) {
+  float TTP = 0;
+  if (freq != 0) {
+    TTP = fsc / (16 * freq);
+  }
+  int TP = 0;
+  TP = (float)TTP;
+  TP &= 0b0000111111111111;
+  setRegister(0x00 + (ch * 2), TP & 0xff);
+  setRegister(0x01 + (ch * 2), (TP >> 8) & 0xff);
+}
+
+void YMZ294::setNoiseFrequency(int freq) {
+  int NP = 0;
+  if (freq != 0) {
+    NP = fsc / (16 * freq);
+  }
+  NP &= 0b0000000011111111;
+  setRegister(0x06, NP & 0xff);
+}
 

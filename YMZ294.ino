@@ -6,6 +6,7 @@ const byte a0 = 19;
 const byte ic = 22;
 byte d[] = {32, 33, 25, 26, 27, 14, 12, 13};
 #define toggle true
+#define pi 3.14159265359
 
 YMZ294 chip1(ws, cs, a0, ic, d, toggle);
 
@@ -17,29 +18,36 @@ void setup() {
   chip1.setRegister(0x08, 0);
   chip1.setRegister(0x09, 0);
   chip1.setRegister(0x0a, 0);
-  SetFrequency(0, 0);
-  SetFrequency(1, 0);
-  SetFrequency(2, 0);
+  //  chip1.setToneFrequency(0, 0);
+  //  chip1.setToneFrequency(1, 0);
+  //  chip1.setToneFrequency(2, 0);
+
 
   delay(100);
-
-  SetFrequency(0, 440);
+  chip1.setNoiseFrequency(0);
+  //  chip1.setToneFrequency(0, 440);
   chip1.setRegister(0x08, 15);
+  chip1.setRegister(0x09, 15);
+  chip1.setRegister(0x0A, 15);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+//  chip1.setToneFrequency(0, 500);
+  delay(500);
+//  chip1.setToneFrequency(0, 0);
+  delay(500);
 }
 
-void SetFrequency(int ch, word freq) {
-  word cal_freqency = 0;
-  if (freq != 0) {
-    cal_freqency = 125000 / freq;
-  }
-  cal_freqency &= 0b0000111111111111;
-  chip1.setRegister(0x00 + (ch * 2), cal_freqency & 0xff);
-  chip1.setRegister(0x01 + (ch * 2), (cal_freqency >> 8) & 0xff);
-}
+//void SetFrequency(int ch, word freq) {
+//  word cal_freqency = 0;
+//  if (freq != 0) {
+//    cal_freqency = 125000 / freq;
+//  }
+//  cal_freqency &= 0b0000111111111111;
+//  chip1.setRegister(0x00 + (ch * 2), cal_freqency & 0xff);
+//  chip1.setRegister(0x01 + (ch * 2), (cal_freqency >> 8) & 0xff);
+//}
 
 //void arrayRead(){
 //  int Rd;
