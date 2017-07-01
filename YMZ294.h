@@ -10,10 +10,20 @@ class YMZ294 {
     void setToneFrequency(byte, int);
     void setToneFrequency(byte, float);
     void setNoiseFrequency(int);
-//    void setMixer(
+    void setNoiseFrequency(float);
+    void setMixer(byte, bool);
+    byte getMixer();
+    void setVolume(byte, byte);
+    byte getVolume();
+    void setEnvelope(byte, bool);
+    void setEnvelopeFrequency(int);
+    void setEnvelopeFrequency(float);
+    byte setEnvelopeShape(byte);    
   private:
     byte _WS, _CS, _A0, _IC;
     byte* _D;
     bool _toggle;
+    byte _mix;
+    byte _vol;
 };
 #endif // _YMZ294_H_
