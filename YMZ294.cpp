@@ -2,6 +2,7 @@
 #include "YMZ294.h"
 #define fsc 2000000
 
+
 YMZ294::YMZ294(byte WS, byte CS, byte A0, byte IC, byte* D) {
   _WS = WS;
   pinMode(_WS, OUTPUT);
@@ -16,7 +17,6 @@ YMZ294::YMZ294(byte WS, byte CS, byte A0, byte IC, byte* D) {
     pinMode(_D[i], OUTPUT);
   }
   _mix = 0xff;
-  _vol = 0;
 }
 YMZ294::YMZ294(byte WS, byte CS, byte A0, byte IC, byte* D, bool toggle) {
   _WS = WS;
@@ -33,9 +33,9 @@ YMZ294::YMZ294(byte WS, byte CS, byte A0, byte IC, byte* D, bool toggle) {
   }
   _toggle = toggle;
   _mix = 0xff;
-  _vol = 0;
 }
 
+// リセット
 void YMZ294::reset() {
   if (_toggle == true) {
     digitalWrite(_WS, HIGH);
@@ -52,6 +52,7 @@ void YMZ294::reset() {
   }
 }
 
+// レジスタへの書き込み
 void YMZ294::setRegister(byte address, byte data) {
   //SSGLPにアドレスを書き込む
   digitalWrite(_A0, LOW);
@@ -74,41 +75,53 @@ void YMZ294::setRegister(byte address, byte data) {
   digitalWrite(_WS, HIGH);
 }
 
-
+// トーンの周波数設定
 void YMZ294::setToneFrequency(byte ch, int freq) {
   int TP = 0;
   if (freq != 0) {
     TP = fsc / (16 * freq);
   }
-  TP &= 0x00ff;
-  //  TP &= 0b0000111111111111;
+  if (TP > 4095){
+    TP = 0;
+  }
+  TP &= 0x0fff;
+  //    TP &= 0b0000111111111111;
   setRegister(0x00 + (ch * 2), TP & 0xff);
   setRegister(0x01 + (ch * 2), (TP >> 8) & 0xff);
 }
 
+// トーンの周波数設定
 void YMZ294::setToneFrequency(byte ch, float freq) {
   float floatTP = 0;
-  if (freq != 0) {
+  if (freq != 0 | floatTP < 4096) {
     floatTP = fsc / (16 * freq);
   }
   int TP = 0;
   TP = (int)floatTP;
-  TP &= 0x00ff;
-  //  TP &= 0b0000111111111111;
+  if (TP > 4095){
+    TP = 0;
+  }
+  TP &= 0x0fff;
+  //    TP &= 0b0000111111111111;
   setRegister(0x00 + (ch * 2), TP & 0xff);
   setRegister(0x01 + (ch * 2), (TP >> 8) & 0xff);
 }
 
+// ノイズの周波数設定
 void YMZ294::setNoiseFrequency(int freq) {
   int NP = 0;
   if (freq != 0) {
     NP = fsc / (16 * freq);
   }
-  NP &= 0x00ff;
-  //  NP &= 0b0000000011111111;
-  setRegister(0x06, NP & 0xff);
+  if (NP > 31){
+    NP = 0;
+  }
+  //  NP &= 0x1f;
+  NP &= 0b00011111;
+  setRegister(0x06, NP);
 }
 
+// ノイズの周波数設定
 void YMZ294::setNoiseFrequency(float freq) {
   float floatNP = 0;
   if (freq != 0) {
@@ -116,38 +129,48 @@ void YMZ294::setNoiseFrequency(float freq) {
   }
   int NP = 0;
   NP = (int)floatNP;
-  NP &= 0x00ff;
-  //  NP &= 0b0000000011111111;
-  setRegister(0x06, NP & 0xff);
+  if (NP > 31){
+    NP = 0;
+  }
+  //  NP &= 0x001f;
+  NP &= 0b00011111;
+  setRegister(0x06, NP);
 }
 
+// ミキサーの設定
 void YMZ294::setMixer(byte ch, bool mixSW) {
   bitWrite(_mix, ch, !mixSW);
   setRegister(0x07, _mix);
 }
 
+// _mixを取得（デバッグ用）
 byte YMZ294::getMixer() {
   byte mix = _mix;
   return mix;
 }
 
-void YMZ294::setVolume(byte ch, byte value) {
-  value &= 0x0f;
-  _vol &= 0xf0;
-  _vol = _vol + value;
-  setRegister(0x08 + ch, _vol);
+// ボリュームの設定
+void YMZ294::setVolume(byte ch, byte vol) {
+  byte env = _vol[ch];
+  vol &= 0x0f;
+  env &=  0xf0;
+  _vol[ch] = env + vol;
+  setRegister(0x08 + ch, _vol[ch]);
 }
 
-byte YMZ294::getVolume(){
-  byte vol = _vol;
+// _volの取得（デバッグ用）
+byte YMZ294::getVolume(byte ch) {
+  byte vol = _vol[ch];
   return vol;
 }
 
+// ボリュームとエンベロープの切り替え
 void YMZ294::setEnvelope(byte ch, bool envSW) {
-  bitWrite(_vol, 4, envSW);
-  setRegister(0x08 + ch, _vol);
+  bitWrite(_vol[ch], 4, envSW);
+  setRegister(0x08 + ch, _vol[ch]);
 }
 
+// エンベロープの周波数の設定
 void YMZ294::setEnvelopeFrequency(int freq) {
   int EP = 0;
   if (freq != 0) {
@@ -159,6 +182,7 @@ void YMZ294::setEnvelopeFrequency(int freq) {
   setRegister(0x0C, (EP >> 8) & 0xff);
 }
 
+// エンベロープの周波数の設定
 void YMZ294::setEnvelopeFrequency(float freq) {
   float floatEP = 0;
   if (freq != 0) {
@@ -170,5 +194,10 @@ void YMZ294::setEnvelopeFrequency(float freq) {
   //  EP &= 0b1111111111111111;
   setRegister(0x0B, EP & 0xff);
   setRegister(0x0C, (EP >> 8) & 0xff);
+}
+
+// エンベロープの形状設定
+void YMZ294::setEnvelopeShape(byte) {
+
 }
 
