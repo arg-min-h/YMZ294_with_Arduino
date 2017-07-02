@@ -3,7 +3,6 @@
 
 class YMZ294 {
   public:
-
     YMZ294(byte WS, byte CS, byte A0, byte IC, byte* D);
     YMZ294(byte WS, byte CS, byte A0, byte IC, byte* D, bool toggle);
     void reset();
@@ -13,19 +12,19 @@ class YMZ294 {
     void setNoiseFrequency(int);
     void setNoiseFrequency(float);
     void setMixer(byte, bool);
-    byte getMixer(); // デバッグ用
+//    byte getMixer(); // デバッグ用
     void setVolume(byte, byte);
-    byte getVolume(byte); // デバッグ用
+//    byte getVolume(byte); // デバッグ用
     void setEnvelope(byte, bool);
     void setEnvelopeFrequency(int);
     void setEnvelopeFrequency(float);
-    void setEnvelopeShape(byte);
+    void setEnvelopeShape(bool,bool,bool,bool);
   private:
     byte _WS, _CS, _A0, _IC;
     byte* _D;
     bool _toggle;
     byte _mix;
-    //    byte _vol;
     byte _vol[3];
+    byte _shape;
 };
 #endif // _YMZ294_H_

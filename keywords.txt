@@ -1,0 +1,11 @@
+YMZ294	KEYWORD1
+reset	KEYWORD2
+setRegister	KEYWORD2
+setToneFrequency	KEYWORD2
+setNoiseFrequency	KEYWORD2
+setMixer	KEYWORD2
+getMixer KEYWORD2
+setVolume	KEYWORD2
+setEnvelope	KEYWORD2
+setEnvelopeFrequency	KEYWORD2
+setEnvelopeShape	KEYWORD2
